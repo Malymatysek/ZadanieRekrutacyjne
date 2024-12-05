@@ -28,7 +28,7 @@ namespace ZadanieRekrutacyjne
                         break;
                     case "3":
                         Console.WriteLine("Podaj frazę do wyszukania:");
-                        string fraza = SprwdzanieCzyTextZostalWpisany();
+                        string fraza = Console.ReadLine();
                         WyszukajFrazeWOpisie(towary, fraza);
                         break;
                     case "4":
@@ -46,7 +46,7 @@ namespace ZadanieRekrutacyjne
 
             Console.WriteLine("Podaj ścieżkę do pliku CSV:");
 
-            string path = SprwdzanieCzyTextZostalWpisany();
+            string path = ZabespieczeniePrzedNull();
 
             foreach (var line in File.ReadLines(path))
             {
@@ -66,7 +66,7 @@ namespace ZadanieRekrutacyjne
 
             return towary;
         }
-        static string SprwdzanieCzyTextZostalWpisany()
+        static string ZabespieczeniePrzedNull()
         {
             string wprowadzonyTeskt;
             bool exit = false;
@@ -116,7 +116,7 @@ namespace ZadanieRekrutacyjne
                 Console.WriteLine("Brak wyników.");
             }
         }
-        private static void SaveToXml(List<Towar> towary, string fileName)
+        static void SaveToXml(List<Towar> towary, string nazwaPliku)
         {
             var xml = new XElement("Plik",
                 new XElement("Towary",
@@ -132,10 +132,10 @@ namespace ZadanieRekrutacyjne
                     )
                 );
 
-            xml.Save(fileName);
+            xml.Save(nazwaPliku);
 
-            Console.WriteLine($"Plik XML zapisany jako {fileName}");
-            System.Diagnostics.Process.Start("explorer", fileName); // Otwiera plik XML w eksploratorze
+            Console.WriteLine($"Plik XML zapisany jako {nazwaPliku}");
+            System.Diagnostics.Process.Start("explorer", nazwaPliku); // Otwiera plik XML w eksploratorze
         }
         static void menuTekst()
         {
