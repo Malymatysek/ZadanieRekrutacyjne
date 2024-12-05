@@ -1,136 +1,150 @@
 ﻿using System.IO;
-using System.Xml.Serialization;
-using ZadanieRekrutacyjne;
+using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
-public class Program
+namespace ZadanieRekrutacyjne
 {
-    static void Main(string[] args)
+    public class Program
     {
-        List<Towar> towary = WczytajDaneZPliku();
-        Console.WriteLine("Dane zostały wczytane.");
-
-        Console.WriteLine("Wybierz opcję:");
-        Console.WriteLine("1. Zapisz do XML posortowane wg nazwy");
-        Console.WriteLine("2. Zapisz do XML gdzie cena większa od");
-        Console.WriteLine("3. Wyszukaj frazę w opisie");
-        Console.WriteLine("4. Koniec");
-        bool exit = false;
-        var wybor = Console.ReadLine();
-        while (!exit)
+        static void Main(string[] args)
         {
-            switch (wybor)
+            List<Towar> towary = WczytajDaneZPliku();
+            Console.WriteLine("Dane zostały wczytane.");
+            bool exit = false;
+
+            while (!exit)
             {
-                case "1":
-                    ZapiszDoXmlPosortowane(towary);
-                    break;
-                case "2":
-                    Console.WriteLine("Podaj minimalną cenę:");
-                    decimal cena = Convert.ToDecimal(Console.ReadLine());
-                    ZapiszDoXmlCenaWiekszaOd(towary, cena);
-                    break;
-                case "3":
-                    Console.WriteLine("Podaj frazę do wyszukania:");
-                    string fraza = SprwdzanieNullWStringu(Console.ReadLine());
-                    WyszukajFrazeWOpisie(towary, fraza);
-                    break;
-                case "4":
-                    exit = true;
-                    break;
-                default:
-                    Console.WriteLine("Niepoprawna opcja.");
-                    break;
-            }
-        }
-    }
+                menuTekst();
 
-    static List<Towar> WczytajDaneZPliku()
-    {
-        Console.WriteLine("Podaj ścieżkę do pliku CSV:");
-
-        string path = SprwdzanieNullWStringu(Console.ReadLine());
-        
-        var towary = new List<Towar>();
-
-        foreach (var line in File.ReadLines(path))
-        {
-            var columns = line.Split(';');
-            var towar = new Towar
-            {
-                Nazwa = columns[0],
-                Cena = decimal.Parse(columns[1]),
-                Opis = new Opisy
+                switch (Console.ReadLine())
                 {
-                    A = columns[2],
-                    B = columns[3]
+                    case "1":
+                        ZapiszDoXmlPosortowane(towary);
+                        break;
+                    case "2":
+                        Console.WriteLine("Podaj minimalną cenę:");
+                        decimal cena = Convert.ToDecimal(Console.ReadLine());
+                        ZapiszDoXmlCenaWiekszaOd(towary, cena);
+                        break;
+                    case "3":
+                        Console.WriteLine("Podaj frazę do wyszukania:");
+                        string fraza = SprwdzanieCzyTextZostalWpisany();
+                        WyszukajFrazeWOpisie(towary, fraza);
+                        break;
+                    case "4":
+                        exit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Niepoprawna opcja.");
+                        break;
                 }
-            };
-            towary.Add(towar);
-        }
-
-        return towary;
-    }
-    static string SprwdzanieNullWStringu(string wprowadzonyTeskt )
-    {
-        do
-        {
-            wprowadzonyTeskt = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(wprowadzonyTeskt))
-            {
-                Console.WriteLine("Ścieżka nie może być pusta. Proszę spróbować ponownie.");
             }
         }
-        while (string.IsNullOrWhiteSpace(wprowadzonyTeskt));
-        return wprowadzonyTeskt;
-    }
-    static void ZapiszDoXmlPosortowane(List<Towar> towary)
-    {
-        var posortowaneTowary = towary.OrderBy(t => t.Nazwa).ToList();
-        ZapiszDoXml(posortowaneTowary, "TowaryPosortowaneNazwa.xml");
-    }
-
-    static void ZapiszDoXmlCenaWiekszaOd(List<Towar> towary, decimal cenaMin)
-    {
-        var posortowaneTowary = towary.Where(t => t.Cena > cenaMin).OrderByDescending(t => t.Cena).ToList();
-        ZapiszDoXml(posortowaneTowary, "TowaryCenaWiekszaOd.xml");
-    }
-    static void WyszukajFrazeWOpisie(List<Towar> towary, string fraza)
-    {
-        var wyniki = towary.Where(t => t.Opis.A.Contains(fraza) || t.Opis.B.Contains(fraza)).ToList();
-
-        if (wyniki.Any())
+        static List<Towar> WczytajDaneZPliku()
         {
-            foreach (var towar in wyniki)
+            var towary = new List<Towar>();
+
+            Console.WriteLine("Podaj ścieżkę do pliku CSV:");
+
+            string path = SprwdzanieCzyTextZostalWpisany();
+
+            foreach (var line in File.ReadLines(path))
             {
-                Console.WriteLine($"Nazwa: {towar.Nazwa}, Cena: {towar.Cena}, Opis: {towar.Opis.A}, {towar.Opis.B}");
+                var columns = line.Split(';');
+                var towar = new Towar
+                {
+                    Nazwa = columns[0],
+                    Cena = decimal.Parse(columns[1]),
+                    Opis = new Opisy
+                    {
+                        A = columns[2],
+                        B = columns[3]
+                    }
+                };
+                towary.Add(towar);
+            }
+
+            return towary;
+        }
+        static string SprwdzanieCzyTextZostalWpisany()
+        {
+            string wprowadzonyTeskt;
+            bool exit = false;
+            do
+            {
+                wprowadzonyTeskt = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(wprowadzonyTeskt))
+                {
+                    Console.WriteLine("Ścieżka nie może być pusta. Proszę spróbować ponownie.");
+                }
+                else if (!File.Exists(wprowadzonyTeskt))
+                {
+                    Console.WriteLine($"Błędna ścieżka do pliku CSV - {wprowadzonyTeskt}");
+                }
+                else
+                {                 
+                    exit = true;
+                }
+            }
+            while (!exit);
+            return wprowadzonyTeskt;
+        }
+        static void ZapiszDoXmlPosortowane(List<Towar> towary)
+        {
+            var posortowaneTowary = towary.OrderBy(t => t.Nazwa).ToList();
+            SaveToXml(posortowaneTowary, "TowaryPosortowaneNazwa.xml");
+        }
+        static void ZapiszDoXmlCenaWiekszaOd(List<Towar> towary, decimal cenaMin)
+        {
+            var posortowaneTowary = towary.Where(t => t.Cena > cenaMin).OrderByDescending(t => t.Cena).ToList();
+            SaveToXml(posortowaneTowary, "TowaryPosortowaneCenaOd.xml");
+        }
+        static void WyszukajFrazeWOpisie(List<Towar> towary, string fraza)
+        {
+            var wyniki = towary.Where(t => t.Opis.A.Contains(fraza) 
+                                        || t.Opis.B.Contains(fraza)).ToList();
+            if (wyniki.Any())
+            {
+                foreach (var towar in wyniki)
+                {
+                    Console.WriteLine($"Nazwa: {towar.Nazwa}, Cena: {towar.Cena}, Opis: {towar.Opis.A}, {towar.Opis.B}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Brak wyników.");
             }
         }
-        else
+        private static void SaveToXml(List<Towar> towary, string fileName)
         {
-            Console.WriteLine("Brak wyników.");
+            var xml = new XElement("Plik",
+                new XElement("Towary",
+                    from t in towary
+                    select new XElement("Towar",
+                        new XElement("Nazwa", t.Nazwa),
+                        new XElement("Cena", t.Cena),
+                        new XElement("Opis",
+                            new XElement("A", t.Opis.A),
+                            new XElement("B", t.Opis.B)
+                            )
+                        )
+                    )
+                );
+
+            xml.Save(fileName);
+
+            Console.WriteLine($"Plik XML zapisany jako {fileName}");
+            System.Diagnostics.Process.Start("explorer", fileName); // Otwiera plik XML w eksploratorze
         }
-    }
-    static void ZapiszDoXml(List<Towar> towary, string fileName)
-    {
-        var xmlSerializer = new XmlSerializer(typeof(Plik));
-
-        var plik = new Plik
+        static void menuTekst()
         {
-            Towary = towary
-        };
-
-        using (var writer = new StreamWriter(fileName))
-        {
-            xmlSerializer.Serialize(writer, plik);
+            Console.WriteLine("Wybierz opcję:");
+            Console.WriteLine("1. Zapisz do XML posortowane wg nazwy");
+            Console.WriteLine("2. Zapisz do XML gdzie cena większa od");
+            Console.WriteLine("3. Wyszukaj frazę w opisie");
+            Console.WriteLine("4. Koniec");
         }
-
-        Console.WriteLine($"Dane zostały zapisane do {fileName}");
-        System.Diagnostics.Process.Start("explorer", fileName); // Otwiera plik XML w eksploratorze
     }
 }
 
-public class Plik
-{
-    [XmlArray("Towary")]
-    [XmlArrayItem("Towar")]
-    public List<Towar> Towary { get; set; }
-}
